@@ -1,0 +1,127 @@
+---
+title: "Preliminary Analysis: GSE262796"
+subtitle: "Acquired cetuximab resistance in colorectal cancer"
+author: "Chai Yi Kang & Jamie Tan Wen Qi (Chen Wenqi)"
+date: today
+format:
+  html:
+    toc: true
+    code-fold: false
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+# Introduction
+
+This document accompanies our analysis plan for GSE262796, an RNA-seq dataset investigating acquired resistance to cetuximab in two colorectal cancer cell lines (LIM1215 and DiFi). The dataset comprises 18 samples across six experimental groups: for each cell line, one cetuximab-sensitive parental population and two independently derived resistant populations, each with three biological replicates.
+
+Here we demonstrate engagement with the real data by (1) loading the GEO sample sheet and displaying the experimental design, and (2) running FastQC on representative samples from different conditions.
+
+# Metadata table
+We retrieve the sample sheet for GSE262796 directly from GEO using the `GEOquery` package. This gives us the experimental design in a form that can be programmatically inspected before any sequencing data is touched.
+
+```{r load-metadata}
+library(GEOquery)
+library(knitr)
+library(dplyr)
+
+# Download the series metadata. GSEMatrix = TRUE retrieves the
+# sample-level data. getGPL = FALSE skips the platform annotation,
+# which is irrelevant for RNA-seq (GPLs describe microarray probes).
+gse <- getGEO("GSE262796", GSEMatrix = TRUE, getGPL = FALSE)
+
+# getGEO returns a list (one entry per platform used in the series).
+# GSE262796 uses a single platform, so we take the first element.
+eset <- gse[[1]]
+
+# The sample sheet lives in pData() of the ExpressionSet object.
+pheno <- pData(eset)
+
+cat("Number of samples:", nrow(pheno), "\n")
+cat("Number of metadata columns (raw):", ncol(pheno), "\n")
+```
+
+The raw sheet contains many GEO boilerplate columns. We extract only the fields relevant to the experimental design.
+```{r tidy-metadata}
+library(stringr)
+library(readr)
+
+raw_pheno <- pData(eset)
+
+# Clean core metadata from GEO
+meta <- raw_pheno |>
+  mutate(
+    sample_id = geo_accession,
+    cell_line = `cell line:ch1`,
+    srx       = str_extract(relation.1, "SRX\\d+"),
+    condition = str_extract(title, "(?<=-)(S|R1|R2)(?= )"),
+    replicate = as.integer(str_extract(title, "(?<=biol rep )\\d"))
+  ) |>
+  mutate(group = paste(cell_line, condition, sep = "-")) |>
+  select(sample_id, cell_line, condition, replicate, group, srx)
+
+# SRA Run Selector Metadata was manually downloaded and saved locally
+runinfo <- read_csv("sra_runinfo.csv", show_col_types = FALSE)
+
+# Join SRR Run IDs onto our metadata
+# SRA Run Selector's CSV uses 'Experiment' and 'Run' as column names
+meta <- meta |>
+  left_join(runinfo |> select(Experiment, Run), by = c("srx" = "Experiment")) |>
+  rename(sra_run = Run) |>
+  arrange(cell_line, condition, replicate)
+
+kable(meta, caption = "Experimental design for GSE262796 with SRA run IDs")
+```
+
+# Quality control
+
+We run FastQC on two representative samples to characterise library quality and inform trimming decisions. Following the biological rationale of our pipeline, we chose one cetuximab-sensitive and one cetuximab-resistant LIM1215 sample — the minimum necessary pair for our core contrast, sequenced in the same batch.
+
+| Role | GSM | Condition | SRA Run |
+|------|-----|-----------|---------|
+| Reference | GSM8179487 | LIM1215-S rep 1 | SRR28499039 |
+| Resistant | GSM8179490 | LIM1215-R1 rep 1 | SRR28499036 |
+
+## Downloading the FASTQs
+
+We download the two runs from SRA using `sra-tools`. The `prefetch → fasterq-dump` pattern is NCBI's recommended workflow: `prefetch` retrieves the run in compressed SRA format (resumable, efficient), then `fasterq-dump` converts it to FASTQ. The `--split-files` flag creates separate `_1.fastq` and `_2.fastq` files for paired-end data.
+
+This chunk takes ~15–30 minutes on a typical home connection. We set `eval: false` so it does not re-execute on every render — the files persist in `fastq/` once downloaded.
+
+```{bash download-fastqs}
+#| eval: false
+
+set -e
+
+mkdir -p fastq fastqc_out
+cd fastq
+
+for SRR in SRR28499039 SRR28499036; do
+  if [ ! -f "${SRR}_1.fastq.gz" ] && [ ! -f "${SRR}.fastq.gz" ]; then
+    echo "Fetching $SRR..."
+    prefetch "$SRR"
+    fasterq-dump "$SRR" --split-files --threads 4
+    # Compress to save space
+    gzip -f "${SRR}"*.fastq
+    # Clean up the intermediate .sra directory
+    rm -rf "$SRR"
+  else
+    echo "$SRR already present, skipping."
+  fi
+done
+
+ls -lh
+```
+
+## Running FastQC
+
+Once the FASTQs are on disk, FastQC is fast — a minute or two per file. We run it on whatever FASTQs landed in `fastq/` and write HTML + zip reports to `fastqc_out/`.
+
+```{bash run-fastqc}
+#| eval: false
+
+fastqc fastq/*.fastq.gz -o fastqc_out -t 4
+ls fastqc_out/
+```
