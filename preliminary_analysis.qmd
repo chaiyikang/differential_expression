@@ -155,7 +155,7 @@ pip install "multiqc>=1.25"
 multiqc --version
 ```
 
-MultiQC auto-detects FastQC outputs in the directory passed to it, so no additional configuration is needed. The resulting `multiqc_report.html` is what we actually read — the individual FastQC reports become supporting detail.
+MultiQC auto-detects FastQC outputs in the directory passed to it, so no additional configuration is needed. The resulting `multiqc_report.html` is what we actually read while the individual FastQC reports become supporting detail.
 
 ```{bash run-multiqc}
 #| eval: false
