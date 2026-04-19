@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Chai Yi Kang &amp; Jamie Tan Wen Qi (Chen Wenqi)">
-<meta name="dcterms.date" content="2026-04-18">
+<meta name="dcterms.date" content="2026-04-19">
 
 <title>Preliminary Analysis: GSE262796</title>
 <style>
@@ -2215,6 +2215,7 @@ vertical-align: -.125em;
   <ul class="collapse">
   <li><a href="#downloading-the-fastqs" id="toc-downloading-the-fastqs" class="nav-link" data-scroll-target="#downloading-the-fastqs">Downloading the FASTQs</a></li>
   <li><a href="#running-fastqc" id="toc-running-fastqc" class="nav-link" data-scroll-target="#running-fastqc">Running FastQC</a></li>
+  <li><a href="#aggregating-with-multiqc" id="toc-aggregating-with-multiqc" class="nav-link" data-scroll-target="#aggregating-with-multiqc">Aggregating with MultiQC</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -2241,7 +2242,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 18, 2026</p>
+      <p class="date">April 19, 2026</p>
     </div>
   </div>
   
@@ -2256,7 +2257,7 @@ vertical-align: -.125em;
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
 <p>This document accompanies our analysis plan for GSE262796, an RNA-seq dataset investigating acquired resistance to cetuximab in two colorectal cancer cell lines (LIM1215 and DiFi). The dataset comprises 18 samples across six experimental groups: for each cell line, one cetuximab-sensitive parental population and two independently derived resistant populations, each with three biological replicates.</p>
-<p>Here we demonstrate engagement with the real data by (1) loading the GEO sample sheet and displaying the experimental design, and (2) running FastQC on representative samples from different conditions.</p>
+<p>Here we demonstrate engagement with the real data by (1) loading the GEO sample sheet and displaying the experimental design, and (2) running FastQC on one replicate from each of the six experimental conditions.</p>
 </section>
 <section id="metadata-table" class="level1">
 <h1>Metadata table</h1>
@@ -2510,7 +2511,7 @@ vertical-align: -.125em;
 </section>
 <section id="quality-control" class="level1">
 <h1>Quality control</h1>
-<p>We run FastQC on two representative samples to characterise library quality and inform trimming decisions. Following the biological rationale of our pipeline, we chose one cetuximab-sensitive and one cetuximab-resistant LIM1215 sample — the minimum necessary pair for our core contrast, sequenced in the same batch.</p>
+<p>We run FastQC on six representative samples to characterise library quality and inform trimming decisions — one replicate from each of the six experimental conditions (both cell lines × sensitive/R1/R2). This gives us coverage of every condition in the design while keeping the download and QC runtime manageable. Replicate 1 is used throughout for consistency.</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -2522,52 +2523,103 @@ vertical-align: -.125em;
 </thead>
 <tbody>
 <tr class="odd">
-<td>Reference</td>
+<td>Sensitive parental</td>
 <td>GSM8179487</td>
 <td>LIM1215-S rep 1</td>
 <td>SRR28499039</td>
 </tr>
 <tr class="even">
-<td>Resistant</td>
+<td>Resistant line 1</td>
 <td>GSM8179490</td>
 <td>LIM1215-R1 rep 1</td>
 <td>SRR28499036</td>
+</tr>
+<tr class="odd">
+<td>Resistant line 2</td>
+<td>GSM8179493</td>
+<td>LIM1215-R2 rep 1</td>
+<td>SRR28499033</td>
+</tr>
+<tr class="even">
+<td>Sensitive parental</td>
+<td>GSM8179478</td>
+<td>DiFi-S rep 1</td>
+<td>SRR28499048</td>
+</tr>
+<tr class="odd">
+<td>Resistant line 1</td>
+<td>GSM8179481</td>
+<td>DiFi-R1 rep 1</td>
+<td>SRR28499045</td>
+</tr>
+<tr class="even">
+<td>Resistant line 2</td>
+<td>GSM8179484</td>
+<td>DiFi-R2 rep 1</td>
+<td>SRR28499042</td>
 </tr>
 </tbody>
 </table>
 <section id="downloading-the-fastqs" class="level2">
 <h2 class="anchored" data-anchor-id="downloading-the-fastqs">Downloading the FASTQs</h2>
-<p>We download the two runs from SRA using <code>sra-tools</code>. The <code>prefetch → fasterq-dump</code> pattern is NCBI’s recommended workflow: <code>prefetch</code> retrieves the run in compressed SRA format (resumable, efficient), then <code>fasterq-dump</code> converts it to FASTQ. The <code>--split-files</code> flag creates separate <code>_1.fastq</code> and <code>_2.fastq</code> files for paired-end data.</p>
-<p>This chunk takes ~15–30 minutes on a typical home connection. We set <code>eval: false</code> so it does not re-execute on every render — the files persist in <code>fastq/</code> once downloaded.</p>
+<p>We download the six runs from SRA using <code>sra-tools</code>. The <code>prefetch → fasterq-dump</code> pattern is NCBI’s recommended workflow: <code>prefetch</code> retrieves the run in compressed SRA format (resumable, efficient), then <code>fasterq-dump</code> converts it to FASTQ. The <code>--split-files</code> flag creates separate <code>_1.fastq</code> and <code>_2.fastq</code> files for paired-end data.</p>
+<p>This chunk takes ~1–2 hours on a typical home connection for all six samples. We set <code>eval: false</code> so it does not re-execute on every render — the files persist in <code>fastq/</code> once downloaded. In practice we ran the standalone script <code>download_fastq_all_conditions.sh</code> from the project root; the chunk below mirrors it exactly for reproducibility.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="at">-e</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="at">-euo</span> pipefail</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> fastq fastqc_out</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> fastq</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> fastq</span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> SRR <span class="kw">in</span> SRR28499039 SRR28499036<span class="kw">;</span> <span class="cf">do</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="bu">[</span> <span class="ot">!</span> <span class="ot">-f</span> <span class="st">&quot;</span><span class="va">${SRR}</span><span class="st">_1.fastq.gz&quot;</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="bu">[</span> <span class="ot">!</span> <span class="ot">-f</span> <span class="st">&quot;</span><span class="va">${SRR}</span><span class="st">.fastq.gz&quot;</span> <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;Fetching </span><span class="va">$SRR</span><span class="st">...&quot;</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="ex">prefetch</span> <span class="st">&quot;</span><span class="va">$SRR</span><span class="st">&quot;</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="ex">fasterq-dump</span> <span class="st">&quot;</span><span class="va">$SRR</span><span class="st">&quot;</span> <span class="at">--split-files</span> <span class="at">--threads</span> 4</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compress to save space</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gzip</span> <span class="at">-f</span> <span class="st">&quot;</span><span class="va">${SRR}</span><span class="st">&quot;</span><span class="pp">*</span>.fastq</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Clean up the intermediate .sra directory</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rm</span> <span class="at">-rf</span> <span class="st">&quot;</span><span class="va">$SRR</span><span class="st">&quot;</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$SRR</span><span class="st"> already present, skipping.&quot;</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">fi</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co"># One SRR per condition, using replicate 1 throughout for consistency</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="va">SRRS</span><span class="op">=</span><span class="va">(</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  SRR28499039   <span class="co"># LIM1215-S  rep 1</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  SRR28499036   <span class="co"># LIM1215-R1 rep 1</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  SRR28499033   <span class="co"># LIM1215-R2 rep 1</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  SRR28499048   <span class="co"># DiFi-S     rep 1</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  SRR28499045   <span class="co"># DiFi-R1    rep 1</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  SRR28499042   <span class="co"># DiFi-R2    rep 1</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="va">)</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> SRR <span class="kw">in</span> <span class="st">&quot;</span><span class="va">${SRRS</span><span class="op">[@]</span><span class="va">}</span><span class="st">&quot;</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="bu">[</span> <span class="ot">-f</span> <span class="st">&quot;</span><span class="va">${SRR}</span><span class="st">_1.fastq.gz&quot;</span> <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">echo</span> <span class="st">&quot;&gt;&gt;&gt; </span><span class="va">$SRR</span><span class="st"> already present, skipping.&quot;</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">continue</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">fi</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> <span class="st">&quot;&gt;&gt;&gt; Fetching </span><span class="va">$SRR</span><span class="st">&quot;</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  <span class="ex">prefetch</span> <span class="st">&quot;</span><span class="va">$SRR</span><span class="st">&quot;</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  <span class="ex">fasterq-dump</span> <span class="st">&quot;</span><span class="va">$SRR</span><span class="st">&quot;</span> <span class="at">--split-files</span> <span class="at">--threads</span> 4</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gzip</span> <span class="at">-f</span> <span class="st">&quot;</span><span class="va">${SRR}</span><span class="st">&quot;</span>_1.fastq <span class="st">&quot;</span><span class="va">${SRR}</span><span class="st">&quot;</span>_2.fastq</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span> <span class="at">-rf</span> <span class="st">&quot;</span><span class="va">$SRR</span><span class="st">&quot;</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> <span class="st">&quot;&gt;&gt;&gt; Done with </span><span class="va">$SRR</span><span class="st">&quot;</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;&gt;&gt;&gt; All samples ready:&quot;</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-lh</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="running-fastqc" class="level2">
 <h2 class="anchored" data-anchor-id="running-fastqc">Running FastQC</h2>
-<p>Once the FASTQs are on disk, FastQC is fast — a minute or two per file. We run it on whatever FASTQs landed in <code>fastq/</code> and write HTML + zip reports to <code>fastqc_out/</code>.</p>
+<p>Once the FASTQs are on disk, FastQC is fast — a minute or two per file, so roughly 15–20 minutes for all twelve files (6 samples × paired-end). We run it on whatever FASTQs landed in <code>fastq/</code> and write HTML + zip reports to <code>fastqc_out/</code>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">fastqc</span> fastq/<span class="pp">*</span>.fastq.gz <span class="at">-o</span> fastqc_out <span class="at">-t</span> 4</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> fastqc_out/</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> fastqc_out</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">fastqc</span> fastq/<span class="pp">*</span>.fastq.gz <span class="at">-o</span> fastqc_out <span class="at">-t</span> 4</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> fastqc_out/</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="aggregating-with-multiqc" class="level2">
+<h2 class="anchored" data-anchor-id="aggregating-with-multiqc">Aggregating with MultiQC</h2>
+<p>FastQC produces one HTML report per FASTQ file, which is unwieldy to inspect across twelve files. <a href="https://multiqc.info/">MultiQC</a> parses the <code>*_fastqc.zip</code> outputs and collapses them into a single interactive report, letting us compare per-base quality, adapter content, GC distribution, and duplication levels across all samples side-by-side. This is where batch effects or outlier libraries become visually obvious.</p>
+<p>MultiQC is a Python package, installed once via <code>pip</code>. We pin a recent version for reproducibility:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="st">&quot;multiqc&gt;=1.25&quot;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">multiqc</span> <span class="at">--version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>MultiQC auto-detects FastQC outputs in the directory passed to it, so no additional configuration is needed. The resulting <code>multiqc_report.html</code> is what we actually read — the individual FastQC reports become supporting detail.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> multiqc_out</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">multiqc</span> fastqc_out <span class="at">-o</span> multiqc_out</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> multiqc_out/</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 </section>

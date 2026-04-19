@@ -1,0 +1,13 @@
+Module	Section	Sample Name	Source
+FastQC	all_sections	SRR28499036_1	/Users/chaiyikang/Library/CloudStorage/OneDrive-NationalUniversityofSingapore/Life Science/ZB3101/Assignment 2/zb3_ca2/fastqc_out/SRR28499036_1_fastqc/fastqc_data.txt
+FastQC	all_sections	SRR28499039_2	/Users/chaiyikang/Library/CloudStorage/OneDrive-NationalUniversityofSingapore/Life Science/ZB3101/Assignment 2/zb3_ca2/fastqc_out/SRR28499039_2_fastqc/fastqc_data.txt
+FastQC	all_sections	SRR28499036_2	/Users/chaiyikang/Library/CloudStorage/OneDrive-NationalUniversityofSingapore/Life Science/ZB3101/Assignment 2/zb3_ca2/fastqc_out/SRR28499036_2_fastqc/fastqc_data.txt
+FastQC	all_sections	SRR28499039_1	/Users/chaiyikang/Library/CloudStorage/OneDrive-NationalUniversityofSingapore/Life Science/ZB3101/Assignment 2/zb3_ca2/fastqc_out/SRR28499039_1_fastqc/fastqc_data.txt
+FastQC	all_sections	SRR28499033_1	/Users/chaiyikang/Library/CloudStorage/OneDrive-NationalUniversityofSingapore/Life Science/ZB3101/Assignment 2/zb3_ca2/fastqc_out/SRR28499033_1_fastqc.zip
+FastQC	all_sections	SRR28499033_2	/Users/chaiyikang/Library/CloudStorage/OneDrive-NationalUniversityofSingapore/Life Science/ZB3101/Assignment 2/zb3_ca2/fastqc_out/SRR28499033_2_fastqc.zip
+FastQC	all_sections	SRR28499042_1	/Users/chaiyikang/Library/CloudStorage/OneDrive-NationalUniversityofSingapore/Life Science/ZB3101/Assignment 2/zb3_ca2/fastqc_out/SRR28499042_1_fastqc.zip
+FastQC	all_sections	SRR28499042_2	/Users/chaiyikang/Library/CloudStorage/OneDrive-NationalUniversityofSingapore/Life Science/ZB3101/Assignment 2/zb3_ca2/fastqc_out/SRR28499042_2_fastqc.zip
+FastQC	all_sections	SRR28499045_1	/Users/chaiyikang/Library/CloudStorage/OneDrive-NationalUniversityofSingapore/Life Science/ZB3101/Assignment 2/zb3_ca2/fastqc_out/SRR28499045_1_fastqc.zip
+FastQC	all_sections	SRR28499045_2	/Users/chaiyikang/Library/CloudStorage/OneDrive-NationalUniversityofSingapore/Life Science/ZB3101/Assignment 2/zb3_ca2/fastqc_out/SRR28499045_2_fastqc.zip
+FastQC	all_sections	SRR28499048_1	/Users/chaiyikang/Library/CloudStorage/OneDrive-NationalUniversityofSingapore/Life Science/ZB3101/Assignment 2/zb3_ca2/fastqc_out/SRR28499048_1_fastqc.zip
+FastQC	all_sections	SRR28499048_2	/Users/chaiyikang/Library/CloudStorage/OneDrive-NationalUniversityofSingapore/Life Science/ZB3101/Assignment 2/zb3_ca2/fastqc_out/SRR28499048_2_fastqc.zip

@@ -141,26 +141,3 @@ mkdir -p fastqc_out
 fastqc fastq/*.fastq.gz -o fastqc_out -t 4
 ls fastqc_out/
 ```
-
-## Aggregating with MultiQC
-
-FastQC produces one HTML report per FASTQ file, which is unwieldy to inspect across twelve files. [MultiQC](https://multiqc.info/) parses the `*_fastqc.zip` outputs and collapses them into a single interactive report, letting us compare per-base quality, adapter content, GC distribution, and duplication levels across all samples side-by-side. This is where batch effects or outlier libraries become visually obvious.
-
-MultiQC is a Python package, installed once via `pip`. We pin a recent version for reproducibility:
-
-```{bash install-multiqc}
-#| eval: false
-
-pip install "multiqc>=1.25"
-multiqc --version
-```
-
-MultiQC auto-detects FastQC outputs in the directory passed to it, so no additional configuration is needed. The resulting `multiqc_report.html` is what we actually read — the individual FastQC reports become supporting detail.
-
-```{bash run-multiqc}
-#| eval: false
-
-mkdir -p multiqc_out
-multiqc fastqc_out -o multiqc_out
-ls multiqc_out/
-```
