@@ -2615,7 +2615,7 @@ vertical-align: -.125em;
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="st">&quot;multiqc&gt;=1.25&quot;</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">multiqc</span> <span class="at">--version</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>MultiQC auto-detects FastQC outputs in the directory passed to it, so no additional configuration is needed. The resulting <code>multiqc_report.html</code> is what we actually read — the individual FastQC reports become supporting detail.</p>
+<p>MultiQC auto-detects FastQC outputs in the directory passed to it, so no additional configuration is needed. The resulting <code>multiqc_report.html</code> is what we actually read while the individual FastQC reports become supporting detail.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> multiqc_out</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">multiqc</span> fastqc_out <span class="at">-o</span> multiqc_out</span>
