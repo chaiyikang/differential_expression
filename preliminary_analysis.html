@@ -2563,7 +2563,7 @@ vertical-align: -.125em;
 <section id="downloading-the-fastqs" class="level2">
 <h2 class="anchored" data-anchor-id="downloading-the-fastqs">Downloading the FASTQs</h2>
 <p>We download the six runs from SRA using <code>sra-tools</code>. The <code>prefetch → fasterq-dump</code> pattern is NCBI’s recommended workflow: <code>prefetch</code> retrieves the run in compressed SRA format (resumable, efficient), then <code>fasterq-dump</code> converts it to FASTQ. The <code>--split-files</code> flag creates separate <code>_1.fastq</code> and <code>_2.fastq</code> files for paired-end data.</p>
-<p>This chunk takes ~1–2 hours on a typical home connection for all six samples. We set <code>eval: false</code> so it does not re-execute on every render — the files persist in <code>fastq/</code> once downloaded. In practice we ran the standalone script <code>download_fastq_all_conditions.sh</code> from the project root; the chunk below mirrors it exactly for reproducibility.</p>
+<p>This chunk takes ~1–2 hours on a typical home connection for all six samples. We set <code>eval: false</code> so it does not re-execute on every render; the files persist in <code>fastq/</code> once downloaded. In practice we ran the standalone script <code>download_fastq_all_conditions.sh</code> from the project root; the chunk below mirrors it exactly for reproducibility.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> <span class="at">-euo</span> pipefail</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -2600,7 +2600,7 @@ vertical-align: -.125em;
 </section>
 <section id="running-fastqc" class="level2">
 <h2 class="anchored" data-anchor-id="running-fastqc">Running FastQC</h2>
-<p>Once the FASTQs are on disk, FastQC is fast — a minute or two per file, so roughly 15–20 minutes for all twelve files (6 samples × paired-end). We run it on whatever FASTQs landed in <code>fastq/</code> and write HTML + zip reports to <code>fastqc_out/</code>.</p>
+<p>Once the FASTQs are on disk, FastQC is fast: a minute or two per file, so roughly 15–20 minutes for all twelve files (6 samples × paired-end). We run it on whatever FASTQs landed in <code>fastq/</code> and write HTML + zip reports to <code>fastqc_out/</code>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> fastqc_out</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">fastqc</span> fastq/<span class="pp">*</span>.fastq.gz <span class="at">-o</span> fastqc_out <span class="at">-t</span> 4</span>

@@ -2,7 +2,7 @@
 title: "Preliminary Analysis: GSE262796"
 subtitle: "Acquired cetuximab resistance in colorectal cancer"
 author: "Chai Yi Kang & Jamie Tan Wen Qi (Chen Wenqi)"
-date: today
+date: "19 April 2026"
 format:
   html:
     toc: true
@@ -92,7 +92,7 @@ We run FastQC on six representative samples to characterise library quality and 
 
 We download the six runs from SRA using `sra-tools`. The `prefetch → fasterq-dump` pattern is NCBI's recommended workflow: `prefetch` retrieves the run in compressed SRA format (resumable, efficient), then `fasterq-dump` converts it to FASTQ. The `--split-files` flag creates separate `_1.fastq` and `_2.fastq` files for paired-end data.
 
-This chunk takes ~1–2 hours on a typical home connection for all six samples. We set `eval: false` so it does not re-execute on every render — the files persist in `fastq/` once downloaded. In practice we ran the standalone script `download_fastq_all_conditions.sh` from the project root; the chunk below mirrors it exactly for reproducibility.
+This chunk takes ~1–2 hours on a typical home connection for all six samples. We set `eval: false` so it does not re-execute on every render; the files persist in `fastq/` once downloaded. In practice we ran the standalone script `download_fastq_all_conditions.sh` from the project root; the chunk below mirrors it exactly for reproducibility.
 
 ```{bash download-fastqs}
 #| eval: false
@@ -132,7 +132,7 @@ ls -lh
 
 ## Running FastQC
 
-Once the FASTQs are on disk, FastQC is fast — a minute or two per file, so roughly 15–20 minutes for all twelve files (6 samples × paired-end). We run it on whatever FASTQs landed in `fastq/` and write HTML + zip reports to `fastqc_out/`.
+Once the FASTQs are on disk, FastQC is fast: a minute or two per file, so roughly 15–20 minutes for all twelve files (6 samples × paired-end). We run it on whatever FASTQs landed in `fastq/` and write HTML + zip reports to `fastqc_out/`.
 
 ```{bash run-fastqc}
 #| eval: false
